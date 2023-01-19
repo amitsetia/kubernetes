@@ -1,0 +1,12 @@
+Add the annotation so that prometheus can fetch the pod to monitor it via prometheus
+
+kind: Deployment
+
+...
+
+spec:
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "<< PORT OF YOUR CONTAINER >>"
