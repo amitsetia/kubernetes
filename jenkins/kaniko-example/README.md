@@ -56,7 +56,9 @@ apiVersion: v1
             secretName: dockercred
             items:
             - key: .dockerconfigjson
-              path: config.json```
+              path: config.json
+ ```
+ 
               
 –context: This is the location of the Dockerfile. In our case, the Dockerfile is located in the root of the repository. So I have given the git URL of the repository. If you are using a private git repository, then you can use GIT_USERNAME and GIT_PASSWORD (API token) variables to authenticate git repository.
 –destination: Here, you need to replace <dockerhub-username> with your docker hub username with your dockerhub username for kaniko to push the image to the dockerhub registry. For example, in my case its, setiaamit/kaniko-test-image:1.0
@@ -83,6 +85,7 @@ Also, you should use the multi-container pod template with a build and kaniko co
 Here is a Jenkinsfile based on a multi-container pod template where you can build your application and use the kaniko container to build the docker image with the application and push it to a Docker registry.
 
 Important Note: You should use the kaniko image with the debug tag in the pod template because we will explicitly run the kaniko executer using bash. The latest tag images do not have a bash.
+
 ```
             podTemplate(yaml: '''
                 apiVersion: v1
@@ -139,6 +142,7 @@ Important Note: You should use the kaniko image with the debug tag in the pod te
             }
 
 ```
+ 
 You can use the above Jenkinsfile directly on a pipeline job and test it. It is just a template to get started. You need to replace the repo with your code repo and write the build logic as per the application’s needs
 
 
