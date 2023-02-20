@@ -93,7 +93,7 @@ apiVersion: v1
 
 
 –context: This is the location of the Dockerfile. In our case, the Dockerfile is located in the root of the repository. So I have given the git URL of the repository. If you are using a private git repository, then you can use GIT_USERNAME and GIT_PASSWORD (API token) variables to authenticate git repository.
-–destination: Here, you need to replace <dockerhub-username> with your docker hub username with your dockerhub username for kaniko to push the image to the dockerhub registry. For example, in my case its, bibinwilson/kaniko-test-image:1.0
+–destination: Here, you need to replace <dockerhub-username> with your docker hub username with your dockerhub username for kaniko to push the image to the dockerhub registry. For example, in my case its, setiaamit/kaniko-test-image:1.0
 All the other configurations remain the same.
 
 Now deploy the pod.
