@@ -64,27 +64,33 @@ https://github.com/scriptcamp/kubernetes-kaniko
 Save the following manifest as pod.yaml
 
 apiVersion: v1
-kind: Pod
-metadata:
-  name: kaniko
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    args:
-    - "--context=git://github.com/scriptcamp/kubernetes-kaniko"
-    - "--destination=<dockerhub-username>/kaniko-demo-image:1.0"
-    volumeMounts:
-    - name: kaniko-secret
-      mountPath: /kaniko/.docker
-  restartPolicy: Never
-  volumes:
-  - name: kaniko-secret
-    secret:
-      secretName: dockercred
-      items:
-        - key: .dockerconfigjson
-          path: config.json
+    kind: Pod
+    spec:
+      containers:
+      - name: maven
+        image: maven:3.8.1-jdk-8
+        command:
+        - sleep
+        args:
+        - 99d
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:debug
+        command:
+        - sleep
+        args:
+        - 9999999
+        volumeMounts:
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker
+      restartPolicy: Never
+      volumes:
+      - name: kaniko-secret
+        secret:
+            secretName: dockercred
+            items:
+            - key: .dockerconfigjson
+              path: config.json
+
 
 –context: This is the location of the Dockerfile. In our case, the Dockerfile is located in the root of the repository. So I have given the git URL of the repository. If you are using a private git repository, then you can use GIT_USERNAME and GIT_PASSWORD (API token) variables to authenticate git repository.
 –destination: Here, you need to replace <dockerhub-username> with your docker hub username with your dockerhub username for kaniko to push the image to the dockerhub registry. For example, in my case its, bibinwilson/kaniko-test-image:1.0
@@ -143,11 +149,11 @@ podTemplate(yaml: '''
 ''') {
   node(POD_LABEL) {
     stage('Get a Maven project') {
-      git url: 'https://github.com/scriptcamp/kubernetes-kaniko.git', branch: 'main'
+      git url: 'https://github.com/amitsetia/spring-boot.git', branch: 'master'
       container('maven') {
         stage('Build a Maven project') {
           sh '''
-          echo pwd
+          mvn package
           '''
         }
       }
@@ -157,7 +163,7 @@ podTemplate(yaml: '''
       container('kaniko') {
         stage('Build a Go project') {
           sh '''
-            /kaniko/executor --context `pwd` --destination bibinwilson/hello-kaniko:1.0
+            /kaniko/executor --context `pwd` --destination setiaamit/hello-kaniko:0.1
           '''
         }
       }
@@ -165,4 +171,5 @@ podTemplate(yaml: '''
 
   }
 }
+
 You can use the above Jenkinsfile directly on a pipeline job and test it. It is just a template to get started. You need to replace the repo with your code repo and write the build logic as per the application’s needs
