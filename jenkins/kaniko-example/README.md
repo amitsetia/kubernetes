@@ -4,14 +4,17 @@ kaniko doesn't depend on a Docker daemon and executes each command within a Dock
 
 kaniko is meant to be run as an image: gcr.io/kaniko-project/executor. We do not recommend running the kaniko executor binary in another image, as it might not work.
 
+Create Dockerhub Kubernetes Secret
+We have to create a kubernetes secret of type docker-registry for the kaniko pod to authenticate the Docker hub registry and push the image.
+
 Use the following command format to create the docker registry secret. Replace the parameters marked in bold.
-    ```
-            kubectl create secret docker-registry dockercred \
-                --docker-server=https://index.docker.io/v1/ \
-                --docker-username=<dockerhub-username> \
-                --docker-password=<dockerhub-password>\
-                --docker-email=<dockerhub-email>
-    ```            
+ ```
+kubectl create secret docker-registry dockercred \
+    --docker-server=https://index.docker.io/v1/ \
+    --docker-username=<dockerhub-username> \
+    --docker-password=<dockerhub-password>\
+    --docker-email=<dockerhub-email>
+```            
 This secret gets mounted to the kaniko pod for it to authenticate the Docker registry to push the built image.
 
 Note: If you have a self hosted docker regpository, you can replace the server URL wiht your docker registry API endpoint.
@@ -24,7 +27,6 @@ I have hosted the manifest and Dockerfile in the public Github repository. It is
 I will use that repository for demonstration. You can fork it or create your own repo with similar configurations.
 
 ```
-
 https://github.com/scriptcamp/kubernetes-kaniko
 Save the following manifest as pod.yaml
 
@@ -54,9 +56,8 @@ apiVersion: v1
             secretName: dockercred
             items:
             - key: .dockerconfigjson
-              path: config.json
-
-```
+              path: config.json```
+              
 –context: This is the location of the Dockerfile. In our case, the Dockerfile is located in the root of the repository. So I have given the git URL of the repository. If you are using a private git repository, then you can use GIT_USERNAME and GIT_PASSWORD (API token) variables to authenticate git repository.
 –destination: Here, you need to replace <dockerhub-username> with your docker hub username with your dockerhub username for kaniko to push the image to the dockerhub registry. For example, in my case its, setiaamit/kaniko-test-image:1.0
 All the other configurations remain the same.
@@ -174,7 +175,3 @@ Here is what you need
 A valid Github repo with a Dockerfile: kaniko will use the repository URL path as the Dockerfile context
 A valid docker hub account: For kaniko pod to authenticate and push the built Docker image.
 Access to Kubernetes cluster: To deploy kaniko pod and create docker registry secret.
-
-Create Dockerhub Kubernetes Secret
-We have to create a kubernetes secret of type docker-registry for the kaniko pod to authenticate the Docker hub registry and push the image.
-
