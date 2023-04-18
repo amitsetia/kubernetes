@@ -1,0 +1,80 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer 'jnlp'
+      yaml '''
+        apiVersion: v1
+        kind: Pod
+        metadata:
+            jenkins: "agent"
+        spec:
+          containers:
+          - name: maven
+            image: 'maven:3.8.1-jdk-8'
+            command:
+            - cat
+            tty: true
+          - name: kubectl
+            image: 'alpine/k8s:1.24.13'
+            command:
+            - cat
+            tty: true
+          - name: kaniko
+            image: gcr.io/kaniko-project/executor:debug
+            command:
+            - cat
+            tty: true
+            volumeMounts:
+            - name: kaniko-secret
+              mountPath: /kaniko/.docker
+          - name: trivy
+            image: 'aquasec/trivy:latest'
+            command:
+            - cat
+            tty: true
+          volumes:
+          - name: kaniko-secret
+            secret:
+              secretName: dockercred
+              items:
+              - key: .dockerconfigjson
+                path: config.json
+        '''
+      retries 2
+    }
+  }
+  stages {
+    stage('Run maven') {
+      steps {
+        container('maven') {
+          sh 'mvn -version'
+        }
+      }
+    }
+    stage('Build Image') {
+       steps {
+        container('kaniko') {
+          sh '''
+            /kaniko/executor --context `pwd` --destination setiaamit/hello-kaniko:0.3
+          '''
+        }
+      }
+    }
+    stage('Scan Image with Trivy') {
+      steps {
+        container('trivy') {
+            sh '''
+            trivy image --no-progress --exit-code 1 --severity CRITICAL setiaamit/hello-kaniko:0.3
+            '''
+          }
+        }
+      }
+    stage('Orchestrate') {
+      steps {
+      container('kubectl') {
+          sh 'kubectl apply -f deployment.yaml'
+              }
+            }
+          }
+  }
+}
