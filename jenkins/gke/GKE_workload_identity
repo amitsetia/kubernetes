@@ -1,0 +1,82 @@
+GKE enable Workload Idnentity on existing cluster
+ 1. Allow CloudSQL access via cloudsqlproxy and PGWEB
+ 2. Jenkins CD on GKE 
+
+
+Enable Workload Identity:(On existing cluster)
+
+To fetch the details of below parameters:
+
+PROJECT_ID=$(gcloud config get project)
+gcloud container clusters list   # To get the cluster name and region
+
+
+gcloud container clusters create CLUSTER_NAME \
+--region=COMPUTE_REGION \
+--workload-pool=PROJECT_ID.svc.id.goog
+
+Replace the following:
+
+    CLUSTER_NAME: the name of your existing cluster.
+    COMPUTE_REGION: the Compute Engine region of your cluster. For zonal clusters, use --zone=COMPUTE_ZONE.
+    PROJECT_ID: your Google Cloud project ID.
+
+Update the existing NODE POOL
+
+gcloud container node-pools update NODEPOOL_NAME \
+--cluster=CLUSTER_NAME \
+--region=COMPUTE_REGION \
+--workload-metadata=GKE_METADATA
+
+
+Configure applications to use Workload Identity
+
+1. Fetch the cluster credentials:
+gcloud container clusters get-credentials CLUSTER_NAME \
+--region=COMPUTE_REGION
+
+2. Create a namespace to use for the Kubernetes service account. You can also use the default namespace or any existing namespace.
+
+kubectl create namespace jenkins
+
+3. Create a Kubernetes service account for your application to use. You can also use the default Kubernetes service account in the default or any existing namespace.
+
+kubectl create serviceaccount jenkins  \
+--namespace jenkins
+
+4. Create an IAM service account for your application or use an existing IAM service account instead. You can use any IAM service account in any project in your organization. For Config Connector, apply the IAMServiceAccount object for your selected service account.
+
+PROJECT_ID=$(gcloud config get-value project)
+
+gcloud iam service-accounts create gkedeployer  --project PROJECT_ID
+
+6. Ensure that your IAM service account has the roles you need. You can grant additional roles using the following command:
+
+
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member serviceAccount:gkedeployer@${PROJECT_ID}.iam.gserviceaccount.com \
+  --role roles/container.admin
+
+7. Allow the Kubernetes service account to impersonate the IAM service account by adding an IAM policy binding between the two service accounts. This binding allows the Kubernetes service account to act as the IAM service account.
+
+
+gcloud iam service-accounts add-iam-policy-binding gkedeployer@${PROJECT_ID}.iam.gserviceaccount.com  \
+--role="roles/iam.workloadIdentityUser" \
+--member="serviceAccount:${PROJECT_ID}.svc.id.goog[jenkins/default]" 
+
+8. Annotate the Kubernetes service account with the email address of the IAM service account.
+
+kubectl annotate serviceaccount \
+default --namespace jenkins \
+iam.gke.io/gcp-service-account=gkedeployer@${PROJECT_ID}.iam.gserviceaccount.com 
+
+9.Update your Pod spec to schedule the workloads on nodes that use Workload Identity and to use the annotated Kubernetes service account.
+
+spec:
+  serviceAccountName: KSA_NAME
+nodeSelector:
+    iam.gke.io/gke-metadata-server-enabled: "true"
+
+ kubectl apply -f DEPLOYMENT_FILE
+
+ In some cases you have to enable the "IAM Service Accounts Credentials API"
