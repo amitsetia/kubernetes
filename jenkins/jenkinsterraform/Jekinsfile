@@ -1,0 +1,65 @@
+def foldersList = []
+def selectedProperty='path'
+podTemplate(yaml: '''
+    apiVersion: v1
+    kind: Pod
+    spec:
+      containers:
+      - name: maven
+        image: hashicorp/terraform:latest 
+        command:
+        - sleep
+        args:
+        - 99d
+''') {
+  node(POD_LABEL) {
+    stage('Get a Maven project') {
+      git branch: 'main', url: 'https://github.com/amitsetia/terraform.git'
+      container('maven') {
+        stage('Build a Maven project') {
+    
+          echo ".... WORKSPACE: ${WORKSPACE}"
+          def output = sh returnStdout: true, script: 'ls -Rr1 ${WORKSPACE}  | while read line; do case $line in *:) basepath=${line%:};; "") basepath=;; *) echo "$basepath";; esac; done | uniq'
+          foldersList = output.tokenize('\n').collect() { it }
+          echo ".... " + foldersList
+          selectedProperty = input( id: 'userInput', message: 'Choose properties file message', 
+          parameters: [ [
+            $class: 'ChoiceParameterDefinition', 
+            choices: foldersList, 
+            description: 'foldersList desc', 
+            name: 'Choose folder Name'] ])
+          echo selectedProperty
+        }
+        
+        stage("Terraform initialization") {
+            container('maven') {
+                sh "terraform -chdir=$selectedProperty init"
+                sh "terraform -chdir=$selectedProperty  plan  -var project_id='platform-dev-208302'"
+                
+            script {
+                // def userInput = input(id: 'confirm', message: 'Apply Terraform?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Apply terraform', name: 'confirm'] ])
+            userInput = input( id: 'userInput', message: 'Terraform Approval message', 
+            parameters: [ [
+             $class: 'ChoiceParameterDefinition', 
+             choices: "apply\ndestroy", 
+             description: 'Terraform Approval desc', 
+             name: 'TerraformChanges'] ])
+            
+            echo userInput
+            }
+        }
+        }
+        
+        stage('Apply') {
+            container('maven') {
+                script {
+                    sh "terraform -chdir=$selectedProperty " + userInput
+                }
+            }
+
+        }
+      }
+    }
+  }
+}
+
