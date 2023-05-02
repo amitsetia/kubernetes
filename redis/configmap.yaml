@@ -13,7 +13,6 @@ data:
     dbfilename dump.rdb
     dir /data
   slave.conf: |
-    slaveof redis-sts-0.redis-service 6379
     maxmemory 400mb
     maxmemory-policy allkeys-lru
     maxclients 20000

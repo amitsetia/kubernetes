@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis-sts
+  name: redis
   namespace: default
 spec:
   serviceName: "redis-service"
@@ -16,20 +16,22 @@ spec:
     spec:
       initContainers:
       - name: init-redis
-        image: redis:latest
-        command:
-        - bash
-        - "-c"
-        - |
+        image: redis:alpine
+        command: [ "sh", "-c" ]
+        args:
+         - |
           set -ex
           # Generate redis server-id from pod ordinal index.
-          [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
-          ordinal=${BASH_REMATCH[1]}
+          MASTER_FDQN=`hostname  -f | sed -e 's/redis-[0-9]\./redis-0./'`
+          #[[ `hostname` =~ -\([0-9]+\)$ ]] || exit 1
+          #ordinal=${BASH_REMATCH[1]}
+          ordinal=$(echo `hostname` | grep -Eo '[0-9]+$'|| exit 1)
           # Copy appropriate redis config files from config-map to respective directories.
           if [[ $ordinal -eq 0 ]]; then
             cp /mnt/master.conf /etc/redis-config.conf
           else
             cp /mnt/slave.conf /etc/redis-config.conf
+            echo "slaveof $MASTER_FDQN 6379" >> /etc/redis-config.conf
           fi
         volumeMounts:
         - name: redis-claim
@@ -38,7 +40,7 @@ spec:
           mountPath: /mnt/
       containers:
       - name: redis
-        image: redis:latest
+        image: redis:alpine
         ports:
         - containerPort: 6379
           name: redis
