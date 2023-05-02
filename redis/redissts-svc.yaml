@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-service
+  name: redis-headless-svc
   namespace: default
   labels:
     app: redis
@@ -9,5 +9,22 @@ spec:
   ports:
     - port: 6379
   clusterIP: None
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: client
+  - port: 16379
+    targetPort: 16379
+    name: gossip
   selector:
     app: redis
