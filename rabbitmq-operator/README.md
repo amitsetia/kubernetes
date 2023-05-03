@@ -8,7 +8,7 @@ The Operators are installed through CRDs (Custom Resource Definition) in the Kub
 
 The CRD is available here https://github.com/rabbitmq/cluster-operator/releases 
 
-		kubectl apply -f https://github.com/rabbitmq/cluster-operator/releases/download/v2.2.0/cluster-operator.yml
+	kubectl apply -f https://github.com/rabbitmq/cluster-operator/releases/download/v2.2.0/cluster-operator.yml
 
 The new resources are inside the rabbitmq-system namespace:
 
@@ -53,25 +53,27 @@ spec:
       cluster_partition_handling = autoheal
       queue_master_locator = min-masters
       loopback_users.guest = false
-      default_user = guest
-      default_pass = guest
+      default_user = admin
+      default_pass = admin
     advancedConfig: ""
 EOF
 
 ```
 
-		kubectl get pods -l app.kubernetes.io/name=rabbitmq
+	kubectl get pods -l app.kubernetes.io/name=rabbitmq
 
 To access the UI execute below command
 
-		kubectl port-forward svc/rabbitmq 15672:15672
+	kubectl port-forward svc/rabbitmq 15672:15672
 
 To fetch the username password execute these command or try to login with
-username: guest
-password: guest
 
+	kubectl get secrets rabbitmq-default-user -o jsonpath="{.data.password}" | base64 -d
+	kubectl get secrets rabbitmq-default-user -o jsonpath="{.data.username}" | base64 -d
+	
+If username and password set via additional Config the try to login with that like in my case
+ 
+	username: admin
+	password: admin
 
-		kubectl get secrets rabbitmq-default-user -o jsonpath="{.data.password}" | base64 -d
-
-		kubectl get secrets rabbitmq-default-user -o jsonpath="{.data.username}" | base64 -d
 
