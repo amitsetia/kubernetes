@@ -63,6 +63,13 @@ spec:
           initialDelaySeconds: 20
           timeoutSeconds: 5
           periodSeconds: 3
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         volumeMounts:
         - name: redis-data
           mountPath: /data
