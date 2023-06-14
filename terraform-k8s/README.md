@@ -1,9 +1,9 @@
-This folder has files which will help us to learn about k8s deployment with terraform.
-
-  terraform init
+First step to create namespace with terraform.
   
-  #watch out the plan output and make sure to change the namespace variable value to create a namespace and also make sure to set the correct context
+    terraform init
   
-  terraform plan
+#watch out the plan output and make sure to change the namespace variable value to create a namespace and also make sure to set the correct context
   
-  terraform apply
+    terraform plan
+  
+    terraform apply -var "namespace=tf-namespace"
