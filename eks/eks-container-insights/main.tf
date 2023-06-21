@@ -24,13 +24,13 @@ resource "kubernetes_namespace" "amazon-cloudwatch" {
 }
 
 ################ serviceaccount ##############
-resource "kubernetes_service_account" "cloudwatch" {
-  metadata {
-    name = "cloudwatch"
-    namespace = kubernetes_namespace.amazon-cloudwatch.metadata[0].name
-    annotations = { "eks.amazonaws.com/role-arn" = "${aws_iam_role.fluentbit.id}" }
-  }
-}
+#resource "kubernetes_service_account" "cloudwatch" {
+#  metadata {
+#    name = "cloudwatch"
+#    namespace = kubernetes_namespace.amazon-cloudwatch.metadata[0].name
+#    annotations = { "eks.amazonaws.com/role-arn" = "${aws_iam_role.fluentbit.id}" }
+#  }
+#}
 
 ############## Cloudwatch Configmap  ##############
 
