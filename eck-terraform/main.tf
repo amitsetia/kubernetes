@@ -10,6 +10,18 @@ resource "helm_release" "eck_operator" {
   dependency_update = true
 }
 
+resource "helm_release" "kube-state-metric" {
+  name = "kube-state-metrics"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart = "kube-state-metrics"
+  namespace = "kube-system"
+  create_namespace = false
+ 
+  set {
+    name  = "appVersion"
+    value = "2.7.0"
+  }
+}
 
 resource "kubernetes_namespace" "efk_ns" {
   metadata {
@@ -17,17 +29,6 @@ resource "kubernetes_namespace" "efk_ns" {
       name = "monitoring"
     }
     name = "monitoring"
-  }
-}
-
-resource "helm_release" "kube-state-metric" {
-  name = "kube-state-metrics"
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart = "kube-state-metrics"
-  namespace = "kube-system"
-  set {
-    name  = "appVersion"
-    value = "2.7.0"
   }
 }
 
