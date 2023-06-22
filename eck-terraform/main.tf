@@ -20,8 +20,19 @@ resource "kubernetes_namespace" "efk_ns" {
   }
 }
 
+resource "helm_release" "kube-state-metric" {
+  name = "kube-state-metrics"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart = "kube-state-metrics"
+  namespace = "kube-system"
+  set {
+    name  = "appVersion"
+    value = "2.7.0"
+  }
+}
+
 data "kubectl_filename_list" "manifests_deployment_op" {
-    pattern = ".yamls/*.yaml"
+    pattern = "./yamls/*.yaml"
 }
 
 resource "kubectl_manifest" "operator_deploy" {
