@@ -23,3 +23,6 @@ Execute the following commands to get the secrets value of Elastic user and port
     kubectl port-forward svc/kibana-logging-kb-http 5601:5601  -n monitoring
 
 Open browser and hit http://localhost:5601 use the "elastic" username and password received from above secret command.
+
+
+Note: On EKS make sure you have "aws-ebs-csi-driver" addon enabled.
