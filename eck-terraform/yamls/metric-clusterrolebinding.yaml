@@ -5,7 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: metricbeat
-  namespace: monitoring
+  namespace: kube-system
 roleRef:
   kind: ClusterRole
   name: metricbeat
