@@ -1,0 +1,30 @@
+#https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-configuration#https_redirect
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: production-backend-config
+spec:
+  connectionDraining:
+    drainingTimeoutSec: 60
+  timeoutSec: 60
+  securityPolicy:
+    name: "example-security-policy"  #Create Security Policy via Console or commandline
+  logging:
+    enable: true
+    sampleRate: 0.5
+    iap:
+      enabled: true
+      oauthclientCredentials:
+        secretName: my-secret
+    sessionAffinity:
+      affinityType: "CLIENT_IP"
+     #affinityType: "GENERATED_COOKIE
+     #affinityCookieTtlSec: 50
+    customRequestHeaders:
+      headers:
+      - "X-Client-Region:{client_region}"
+      - "X-Client-City:{client_city}"
+      - "X-Client-CityLatLong:{client_city_lat_long}"
+
+

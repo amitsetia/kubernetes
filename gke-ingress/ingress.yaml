@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: staging-ingress
+  networking.gke.io/v1beta1.FrontendConfig: tls-1-2-policy
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /apple
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: apple-service
+            port:
+              number: 5678
+      - path: /banana
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: banana-service
+            port:
+              number: 5678

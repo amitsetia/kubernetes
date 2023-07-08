@@ -1,0 +1,14 @@
+#gcloud compute ssl-policies create tls-1-2-policy \
+#    --profile CUSTOM \
+#    --min-tls-version 1.2 \
+#    --custom-features TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: tls-1-2-policy
+spec:
+  sslPolicy: tls-1-2-policy
+  redirectToHttps:
+    enabled: true
+    responseCodeName: 302
