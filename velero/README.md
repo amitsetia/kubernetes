@@ -154,3 +154,7 @@ After deleting namespace you will see nginx deployment is also deleted and Now i
 	velero restore create --from-backup shunyans
 
 
+For more details and commands, follow below link:
+
+https://velero.io/docs/v0.11.0/get-started/
+
