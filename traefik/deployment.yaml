@@ -23,8 +23,12 @@ spec:
             - --api.insecure
             - --providers.kubernetesingress
             - --providers.kubernetesCRD
+            - --entryPoints.http.address=:80
+            - --entryPoints.tcpep.address=:8085
           ports:
             - name: web
               containerPort: 80
             - name: dashboard
               containerPort: 8080
+            - name: tcp
+              containerPort: 8200
