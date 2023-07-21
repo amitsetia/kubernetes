@@ -1,21 +1,23 @@
+# Traefik Ingress
+
 To install Traefik on Kubernetes run the terraform apply, but make sure your kuberentes context is set correctly and kubeconfig should also have correct privileges.
 
 To push the changes, execute following commands:
 
-  terraform init
-  terraform apply
+    terraform init
+    terraform apply
 
-Right now traefik service Type is set to "ClusterIP" , feel free to set to "LoadBalancer". 
+If you see svc.yaml, Service Type is ClusterIP(feel free to set to "LoadBalancer")
 
-If its set to ClusterIP, feel free to use kubectl port-forward utility to check the ingress functionality.
+To access ClusterIP based Service, use the following command to access traefik Dashboard. 
 
-  kubectl port-forward svc/traefik-web-service 80:80
+    kubectl port-forward svc/traefik-dashboard-service 8080:8080
 
-then go to browser and access
+then go to browser and hit "http://localhost:8080"
 
-  http://localhost:80/path (which we set during ingress object creation as mentioned below)
+To expose services via Ingress create an ingress object and point it to right services. To create the ingress object in traefik there are two ways, First use the native definitions to create the ingress resources and second one is using the Traefik CRDs. Below sample is using native way of defining ingress resources. You also found the CRDs configuration ingress resources defintion in ingress-crd.yaml .
 
-'''
+```
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -40,10 +42,11 @@ spec:
             name: vaultraft
             port:
               number: 8200
-'''
+```
 
-To check Ingress object has attached to an endpoint
+To check Ingress resources get created or not make sure desribe the ingress object and make sure it showed an endpoint(Marked in BOLD ). If these endpoints are missing then make sure serving POD is up and running.
 
+```
 ASRHQ872:traefik $ kubectl describe ing
 Name:             frontend
 Labels:           <none>
@@ -55,17 +58,18 @@ Rules:
   Host        Path  Backends
   ----        ----  --------
   *
-              /rabbitmq/   import-definitions:15672 (10.0.0.15:15672)
-              /ui/*        vaultraft:8200 (10.0.0.14:8200)
+              /rabbitmq/   import-definitions:15672 (**10.0.0.15:15672**)
+              /ui/*        vaultraft:8200 (**10.0.0.14:8200**)
 Annotations:  kubernetes.io/ingress.class: traefik
 Events:       <none>
 
+```
 
-######Advance Configuration in Traefik
+### Advance Configuration in Traefik
 
 1. Rate Limiting
 
-'''
+```
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -74,12 +78,13 @@ spec:
   rateLimit:
     average: 100
     burst: 50
-'''
+```
 
 it specifies a rate limiting rule of 100 requests per second with a burst rate of 50 requests. You can adjust these values to suit your specific requirements.
 
 2. Add the Rate Limiting Middleware to Service:
- apiVersion: v1
+```
+apiVersion: v1
 kind: Service
 metadata:
   name: my-service
@@ -91,20 +96,21 @@ spec:
   ports:
     - name: http
       port: 80
+```
 
 #### Enable TCP entrypoint
 
-To handle TCP request we have to enable TCP entrypoint in the Traefik first and then use the "IngressRouteTCP" object to forward traffic to TCP backend.
+To handle TCP request like connecting to MySQL, MongoDB, Vault. We have to use TCP entrypoint feature of Traefik. Configure the entrypoint in deployment and then use the "IngressRouteTCP" CRD object to forward traffic to TCP backend.
 
 Issue: Vault service is exposed on port 8200, i tried it to access it via HTTP entrypoint, but getting 404 Page not found error.
 
 Solution: Enabled TCP entrypoint by adding the following entry in the Traefik deployment.yaml and then later exposed that TCP port in traefik svc.yaml.
 
-spec.template.spec.containers.args =  - --entryPoints.tcpep.address=:8085
+    spec.template.spec.containers.args =  - --entryPoints.tcpep.address=:8085
 
 in Service yaml exposed TCP port:
 
-'''
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -117,11 +123,11 @@ spec:
       targetPort: 8085
   selector:
     app: traefik
-'''
+```
 
 Then by using the IngressRouteTCP object of traefik CRDs, exposed the vault svc
 
-'''
+```
 apiVersion: traefik.io/v1alpha1
 kind: IngressRouteTCP
 metadata:
@@ -134,8 +140,8 @@ spec:
     services:
     - name: vaultraft
       port: 8200
-'''
+```
 
 To access the service, execute the following command and hit the localhost:8085
 
-  kubectl port-forward svc/traefik-tcp-service 8085:8085
+    kubectl port-forward svc/traefik-tcp-service 8085:8085
