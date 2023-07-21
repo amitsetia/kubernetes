@@ -1,0 +1,26 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prodroute
+spec:
+  entryPoints:
+  - http
+  routes:
+  - match: PathPrefix(`/ui`)
+    kind: Rule
+    services:
+      - kind: Service
+        name: vaultraft
+        port: 8200
+        passHostHeader: true
+  - match: PathPrefix(`/rabbitmq/`)
+    kind: Rule
+    services:
+      - kind: Service
+        name: import-definitions
+        port: 15672
+        passHostHeader: true
+    middlewares:
+      - name: prodratelimit
+        namespace: default
+      - name: latency-check
