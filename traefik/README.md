@@ -163,3 +163,6 @@ The setup we have done is not collecting logs, To enable access logging in traef
 - --accesslog.format=json
 - --accesslog.filepath=/data/access.log
 ```
+   <img width="932" alt="Screenshot 2023-07-25 at 8 34 15 PM" src="https://github.com/amitsetia/kubernetes/assets/11635709/ee07a9ca-0cd2-489b-afcb-11f5f75e9220">
+
+
