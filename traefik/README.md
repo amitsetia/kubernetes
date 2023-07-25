@@ -145,3 +145,21 @@ spec:
 To access the service, execute the following command and hit the localhost:8085
 
     kubectl port-forward svc/traefik-tcp-service 8085:8085
+
+## Enable access logs 
+The setup we have done is not collecting logs, To enable access logging in traefik we have to perform following steps:
+1. Add Volume and VolumeMount in deployment.yaml
+1. Add below snippet containers.arg section.
+
+              volumeMounts:
+                - mountPath: /data/log
+                  name: logdir
+          volumes:
+          - name: logdir
+            emptyDir: {}
+
+```
+- --accesslog
+- --accesslog.format=json
+- --accesslog.filepath=/data/access.log
+```
