@@ -36,3 +36,16 @@ spec:
       targetPort: 8085
   selector:
     app: traefik
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-metrics-service
+
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8082
+      targetPort: 8082
+  selector:
+    app: traefik
